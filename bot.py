@@ -50,12 +50,15 @@ def analizar_botones(html):
     return textos
 
 def estado_evento(html):
-    textos = analizar_botones(html)
+    texto = html.lower()
 
-    if any("ver entradas" in t or "comprar" in t for t in textos):
+    if "agotado" in texto:
+        return "AGOTADO"
+
+    if "ver entradas" in texto or "comprar" in texto or "tickets" in texto:
         return "DISPONIBLE"
 
-    if any("agotado" in t for t in textos):
+    if "no hay entradas" in texto:
         return "AGOTADO"
 
     return "SIN_INFO"
