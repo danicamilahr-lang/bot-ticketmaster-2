@@ -1,115 +1,52 @@
-import requests
-import hashlib
-from bs4 import BeautifulSoup
+import time
 import os
-import json
+import requests
+from selenium import webdriver
+from selenium.webdriver.chrome.options import Options
 
-# =========================
-# TELEGRAM (SECRETS)
-# =========================
-TOKEN = os.getenv("8704703366:AAHErSnoVFTJUBTchB_yIz4X9pJ8dIbf8Ik")
-CHAT_ID = os.getenv("7736479049")
+TOKEN = os.getenv("BOT_TOKEN")
+CHAT_ID = os.getenv("CHAT_ID")
 
-# =========================
-# URLS
-# =========================
 URLS = [
     "https://www.ticketmaster.co/event/bts-world-tour-venta-general-sabado-3-octubre",
     "https://www.ticketmaster.co/event/bts-world-tour-venta-general-viernes-2-octubre"
 ]
 
-# =========================
-# HEADERS
-# =========================
-HEADERS = {
-    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)",
-    "Accept-Language": "es-ES,es;q=0.9,en;q=0.8"
-}
-
-# =========================
-# TELEGRAM
-# =========================
 def enviar_telegram(msg):
-    try:
-        url = f"https://api.telegram.org/bot{TOKEN}/sendMessage"
-        requests.post(url, data={"chat_id": CHAT_ID, "text": msg})
-    except Exception as e:
-        print("Error enviando Telegram:", e)
+    url = f"https://api.telegram.org/bot{TOKEN}/sendMessage"
+    requests.post(url, data={"chat_id": CHAT_ID, "text": msg})
 
-# =========================
-# FUNCIONES
-# =========================
-def obtener_html(url):
-    r = requests.get(url, headers=HEADERS, timeout=15)
-    return r.text
+def iniciar_driver():
+    options = Options()
+    options.add_argument("--headless")
+    options.add_argument("--no-sandbox")
+    options.add_argument("--disable-dev-shm-usage")
+    return webdriver.Chrome(options=options)
 
-def analizar_botones(html):
-    soup = BeautifulSoup(html, "html.parser")
-    botones = soup.find_all(["a", "button"])
-    textos = [b.get_text(strip=True).lower() for b in botones]
-    return textos
+def estado_evento(driver, url):
+    driver.get(url)
+    time.sleep(5)
+    html = driver.page_source.lower()
 
-def estado_evento(html):
-    texto = html.lower()
-
-    if "agotado" in texto:
+    if "agotado" in html or "sold out" in html:
         return "AGOTADO"
 
-    if "ver entradas" in texto or "comprar" in texto or "tickets" in texto:
+    if "comprar" in html or "ver entradas" in html:
         return "DISPONIBLE"
-
-    if "no hay entradas" in texto:
-        return "AGOTADO"
 
     return "SIN_INFO"
 
-def hash_pagina(html):
-    limpio = BeautifulSoup(html, "html.parser").get_text(separator=" ", strip=True)
-    return hashlib.md5(limpio.encode()).hexdigest()
+driver = iniciar_driver()
 
-# =========================
-# CARGAR ESTADO
-# =========================
-try:
-    with open("estado.json") as f:
-        estado_guardado = json.load(f)
-except:
-    estado_guardado = {}
-
-# =========================
-# EJECUCIÓN
-# =========================
 for url in URLS:
     try:
-        html = obtener_html(url)
+        estado = estado_evento(driver, url)
+        print(url, "→", estado)
 
-        estado_actual = estado_evento(html)
-        hash_actual = hash_pagina(html)
-
-        estado_prev = estado_guardado.get(url, {})
-        estado_anterior = estado_prev.get("estado")
-        hash_anterior = estado_prev.get("hash")
-
-        print(f"{url} → {estado_actual}")
-
-        cambio_pagina = hash_anterior != hash_actual
-        cambio_importante = (
-            estado_anterior == "AGOTADO" and estado_actual == "DISPONIBLE"
-        )
-
-        if cambio_pagina and cambio_importante:
-            enviar_telegram(f"🚨 ENTRADAS DISPONIBLES!\n{url}")
-
-        estado_guardado[url] = {
-            "estado": estado_actual,
-            "hash": hash_actual
-        }
+        if estado == "DISPONIBLE":
+            enviar_telegram(f"🚨 ENTRADAS DISPONIBLES\n{url}")
 
     except Exception as e:
-        print(f"Error en {url}: {e}")
+        print("Error:", e)
 
-# =========================
-# GUARDAR ESTADO
-# =========================
-with open("estado.json", "w") as f:
-    json.dump(estado_guardado, f)
+driver.quit()
