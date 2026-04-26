@@ -38,15 +38,22 @@ def estado_evento(driver, url):
 
 driver = iniciar_driver()
 
-for url in URLS:
-    try:
-        estado = estado_evento(driver, url)
-        print(url, "→", estado)
+import time
 
-        if estado == "DISPONIBLE":
-            enviar_telegram(f"🚨 ENTRADAS DISPONIBLES\n{url}")
+for ciclo in range(20):  # Revisa durante ~1 hora
+    print(f"Revisión #{ciclo+1}")
 
-    except Exception as e:
-        print("Error:", e)
+    for url in URLS:
+        try:
+            estado = estado_evento(driver, url)
+            print(url, "→", estado)
+
+            if estado == "DISPONIBLE":
+                enviar_telegram(f"🚨 ENTRADAS DISPONIBLES\n{url}")
+
+        except Exception as e:
+            print("Error:", e)
+
+    time.sleep(180)  # Espera 3 minutos entre revisiones
 
 driver.quit()
