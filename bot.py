@@ -40,7 +40,7 @@ driver = iniciar_driver()
 
 import time
 
-for ciclo in range(10):  # Revisa durante ~1 hora
+for ciclo in range(10):  # Revisa durante ~30 minutos
     print(f"Revisión #{ciclo+1}")
 
     for url in URLS:
