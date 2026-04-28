@@ -3,7 +3,6 @@ import os
 import requests
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
-from selenium.webdriver.chrome.service import Service
 
 
 TOKEN = os.getenv("BOT_TOKEN")
@@ -20,7 +19,7 @@ def enviar_telegram(msg):
 
 def iniciar_driver():
     options = Options()
-    options.binary_location = "/usr/bin/chromium"
+    options.binary_location = "/usr/bin/chromium-browser"
 
     options.add_argument("--headless=new")
     options.add_argument("--no-sandbox")
