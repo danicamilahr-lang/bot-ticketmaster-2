@@ -3,6 +3,7 @@ import os
 import requests
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
+from selenium.webdriver.chrome.service import Service
 
 
 TOKEN = os.getenv("BOT_TOKEN")
@@ -19,6 +20,7 @@ def enviar_telegram(msg):
 
 def iniciar_driver():
     options = Options()
+
     options.binary_location = "/usr/bin/chromium"
 
     options.add_argument("--headless=new")
@@ -26,7 +28,10 @@ def iniciar_driver():
     options.add_argument("--disable-dev-shm-usage")
     options.add_argument("--disable-gpu")
 
-    driver = webdriver.Chrome(options=options)
+    driver = webdriver.Chrome(
+        service=Service("/nix/store/chromedriver/bin/chromedriver"),
+        options=options
+    )
 
     return driver
 
