@@ -19,7 +19,7 @@ def enviar_telegram(msg):
 
 def iniciar_driver():
     options = Options()
-    options.binary_location = "/usr/bin/chromium-browser"
+    options.binary_location = "/usr/bin/chromium"
 
     options.add_argument("--headless=new")
     options.add_argument("--no-sandbox")
