@@ -3,7 +3,7 @@ import os
 import requests
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
-from selenium.webdriver.chrome.service import Service
+
 
 
 TOKEN = os.getenv("BOT_TOKEN")
