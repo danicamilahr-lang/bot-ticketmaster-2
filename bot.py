@@ -29,7 +29,7 @@ def iniciar_driver():
     options.add_argument("--disable-gpu")
 
     driver = webdriver.Chrome(
-        service=Service("/nix/store/chromedriver/bin/chromedriver"),
+        service=Service("/usr/bin/chromedriver"),
         options=options
     )
 
